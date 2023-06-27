@@ -3,7 +3,7 @@
 
 // Функция для вычисления интерполированного значения
 double cubicSplineInterpolation(double x, double xi[], double fi[], int n) {
-    int i;
+     int i;
 
     for (i = 0; i < n - 1; i++) {
         if (x >= xi[i] && x <= xi[i + 1]) {
@@ -48,27 +48,48 @@ double cubicSplineInterpolation(double x, double xi[], double fi[], int n) {
 }
 
 int main() {
-    // Заданные точки и значения
-    double xi[] = {1.0, 2.0, 3.0, 4.0, 5.0};    // Заданные точки xi
-    double fi[] = {4.0, 5.0, 6.0, 8.0, 2.0};    // Значения в заданных точках fi
-    int n = sizeof(xi) / sizeof(xi[0]);        // Количество точек
+    // Ввод количества точек и значений
+    int n;
+    printf("vvedite collichestvo tochek:: ");
+    scanf("%d", &n);
+
+    // Выделение памяти для массивов
+    double* xi = malloc(n * sizeof(double));
+    double* fi = malloc(n * sizeof(double));
+
+    // Ввод точек и значений
+    printf("vvedite znachenie tochek xi and  znachenie fi: \n");
+    for (int i = 0; i < n; i++) {
+        scanf("%lf %lf", &xi[i], &fi[i]);
+    }
 
     // Интерполирование
     int numInterpolatedPoints = 10;            // Количество интерполированных точек
     double stepSize = (xi[n - 1] - xi[0]) / (numInterpolatedPoints - 1);
 
-    FILE* gnuplotPipe = popen("gnuplot -persistent", "w");
-    fprintf(gnuplotPipe, "plot '-' with lines\n");
+    // Создание файла для сохранения данных
+    FILE* dataFile = fopen("data.txt", "w");
+    if (dataFile == NULL) {
+        printf("error open file.\n");
+        return 1;
+    }
 
+    // Сохранение данных в файл
     for (int i = 0; i < numInterpolatedPoints; i++) {
         double interpolatePoint = xi[0] + i * stepSize;
         double interpolatedValue = cubicSplineInterpolation(interpolatePoint, xi, fi, n);
 
-        fprintf(gnuplotPipe, "%f %f\n", interpolatePoint, interpolatedValue);
+        fprintf(dataFile, "%f %f\n", interpolatePoint, interpolatedValue);
     }
 
-    fprintf(gnuplotPipe, "e\n");
-    pclose(gnuplotPipe);
+    fclose(dataFile);
+
+    // Освобождение памяти
+    free(xi);
+    free(fi);
+
+    // Выполнение команды Python для построения графика
+    system("python D:\\PRACTICA2023\\practica2023\\usinPyton\\plot_graph.py");
 
     return 0;
 }
