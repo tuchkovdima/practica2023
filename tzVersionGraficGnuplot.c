@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 // Функция для вычисления интерполированного значения
 double cubicSplineInterpolation(double x, double xi[], double fi[], int n) {
@@ -47,37 +48,41 @@ double cubicSplineInterpolation(double x, double xi[], double fi[], int n) {
 }
 
 int main() {
-    // Задание количества точек
+    // Ввод количества точек
     int n;
-    printf("vvedite kollichestvo tochek: ");
+    printf("vvedite collichestvo tochek: ");
     scanf("%d", &n);
 
-    // Ввод точек xi
-    double xi[n];
-    printf("vvedite znacchenie tochek xi:\n");
-    for (int i = 0; i < n; i++) {
-        scanf("%lf", &xi[i]);
-    }
+    // Выделение памяти для массивов
+    double* xi = malloc(n * sizeof(double));
+    double* fi = malloc(n * sizeof(double));
 
-    // Ввод значений fi
-    double fi[n];
-    printf("vvedite znachenie in zadannix tochkax fi:\n");
+    // Ввод точек и значений
+    printf("vvedite znachenie tochek xi and  znachenie fi:\n");
     for (int i = 0; i < n; i++) {
-        scanf("%lf", &fi[i]);
+        scanf("%lf %lf", &xi[i], &fi[i]);
     }
 
     // Интерполирование
     int numInterpolatedPoints = 10;            // Количество интерполированных точек
     double stepSize = (xi[n - 1] - xi[0]) / (numInterpolatedPoints - 1);
 
-    printf("Interpolated values:\n");
+    FILE* gnuplotPipe = popen("gnuplot -persistent", "w");
+    fprintf(gnuplotPipe, "plot '-' with lines\n");
+
     for (int i = 0; i < numInterpolatedPoints; i++) {
         double interpolatePoint = xi[0] + i * stepSize;
         double interpolatedValue = cubicSplineInterpolation(interpolatePoint, xi, fi, n);
 
-        printf("x=%.2f, f=%.2f\n", interpolatePoint, interpolatedValue);
+        fprintf(gnuplotPipe, "%f %f\n", interpolatePoint, interpolatedValue);
     }
 
-    system ("pause");
+    fprintf(gnuplotPipe, "e\n");
+    pclose(gnuplotPipe);
+
+    // Освобождение памяти
+    free(xi);
+    free(fi);
+
     return 0;
 }
